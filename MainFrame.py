@@ -6,7 +6,87 @@ import tkinter as tk
 from tkinter import ttk
 from tkinter import messagebox as msg
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2Tk
+
 from matplotlib.figure import Figure
+
+#def graphPoint(x)
+
+def funcCallback(a, b, p0, p1, tol, func):
+  if func.current() == 0:
+    a.delete(0, tk.END)
+    a.insert(0, "1")
+
+    b.delete(0, tk.END)
+    b.insert(0, "3")
+
+    p0.delete(0, tk.END)
+    p0.insert(0, "1")
+
+    p1.delete(0, tk.END)
+    p1.insert(0, "2.5")
+
+    tol.delete(0, tk.END)
+    tol.insert(0, "0.00001")
+  elif func.current() == 1:
+    a.delete(0, tk.END)
+    a.insert(0, "1")
+
+    b.delete(0, tk.END)
+    b.insert(0, "4")
+
+    p0.delete(0, tk.END)
+    p0.insert(0, "2.5")
+
+    p1.delete(0, tk.END)
+    p1.insert(0, "3")
+
+    tol.delete(0, tk.END)
+    tol.insert(0, f"{10**-4}")
+  elif func.current() == 2:
+    a.delete(0, tk.END)
+    a.insert(0, "-4")
+
+    b.delete(0, tk.END)
+    b.insert(0, "0")
+
+    p0.delete(0, tk.END)
+    p0.insert(0, "-1")
+
+    p1.delete(0, tk.END)
+    p1.insert(0, "0")
+
+    tol.delete(0, tk.END)
+    tol.insert(0, f"{10**-4}")
+  elif func.current() == 3:
+    a.delete(0, tk.END)
+    a.insert(0, "0")
+
+    b.delete(0, tk.END)
+    b.insert(0, f"{m.pi/2}")
+
+    p0.delete(0, tk.END)
+    p0.insert(0, "0.7854")
+
+    p1.delete(0, tk.END)
+    p1.insert(0, "1.5")
+
+    tol.delete(0, tk.END)
+    tol.insert(0, f"{10**-4}")
+  elif func.current() == 4:
+    a.delete(0, tk.END)
+    a.insert(0, "1")
+
+    b.delete(0, tk.END)
+    b.insert(0, "2.5")
+
+    p0.delete(0, tk.END)
+    p0.insert(0, "1.5")
+
+    p1.delete(0, tk.END)
+    p1.insert(0, "2")
+
+    tol.delete(0, tk.END)
+    tol.insert(0, "0.00001")
 
 def calcRaiz(a, b, p0, p1, tol, n, opc, met):
   global current_table
@@ -96,21 +176,22 @@ def calcRaiz(a, b, p0, p1, tol, n, opc, met):
 
     i = int(1)
     for j in range(1, (n+1)):
-      p = p1 - ( (calcFunc(p1, opc)*(p1 - p0))/(calcFunc(p1, opc) - calcFunc(p0, opc)) )
-      fp = calcFunc(p, opc)
       fp0 = calcFunc(p0, opc)
       fp1 = calcFunc(p1, opc)
 
+      p = p1 - ( (fp1*(p1 - p0))/(fp1 - fp0) )
+      fp = calcFunc(p, opc)
+
       err = abs( (p - p1) )
       current_table.insert(parent='', index=tk.END, values=(j, p, p1, fp, fp1, err))
-
-      if ( fp == 0 ) or ( err < tol ):
+      
+      if ( fp == 0) or ( err < 0 ):
         return p
       
-      if ( (fp * fp1) < 0 ):
-        p0 = p
-      else:
+      if ( (fp * fp0) < 0 ):
         p1 = p
+      else:
+        p0 = p
   
   tk.messagebox.showerror("Error", f"El proceso fallo despues de {n} iteraciones")
   return None
@@ -209,6 +290,9 @@ def setGraph(a_ui, b_ui, p0_ui, p1_ui, tol_ui, n_ui, funcs_ui, mets_ui):
 
   ax.plot(x, org, color="red")
 
+  if raiz != None:
+    ax.plot(raiz, calcFunc(raiz, opc), color="black", marker='o')
+
   ax.set_ylim(limY[0], limY[1])
   ax.set_xlim(min(x), max(x))
   ax.grid(which="major", linestyle="dashed")
@@ -222,6 +306,7 @@ def setGraph(a_ui, b_ui, p0_ui, p1_ui, tol_ui, n_ui, funcs_ui, mets_ui):
 
 # Variable global, se usa para determinar si existe un grafico en la aplicación
 current_canvas = None
+current_axis = None
 current_table = None
 
 ## Ventana principal ##
@@ -258,6 +343,7 @@ funcs = ttk.Combobox(
   state="readonly",
   values=["x^3 + 4x^2 - 10", "x^3 - 2x^2 - 5", "x^3 + 3x^2 - 1", "x - cos(x)", "e^x + 2-x + 2cos(x) - 6"]
 )
+funcs.bind("<<ComboboxSelected>>", lambda _ :funcCallback(punto1, punto2, punto3, punto4, tolerancia, funcs))
 funcs.pack(padx=10, pady=2)
 
 # Lista de los métodos disponibles
@@ -289,14 +375,14 @@ punto4.pack(padx=10, pady=2)
 # Campo de texto para el valor de la tolerancia
 etiqueta3 = tk.Label(opciones, text="Tolerancia")
 etiqueta3.pack(padx=10)
-punto5 = tk.Entry(opciones, width=25, textvariable=tol_ui)
-punto5.pack(padx=10, pady=2)
+tolerancia = tk.Entry(opciones, width=25, textvariable=tol_ui)
+tolerancia.pack(padx=10, pady=2)
 
 # Campo de texto para el número máximo de iteraciones
 etiqueta4 = tk.Label(opciones, text="N. máximo de iteraciones")
 etiqueta4.pack(padx=10)
-punto6 = tk.Entry(opciones, width=25, textvariable=n_ui)
-punto6.pack(padx=10, pady=2)
+n_iter = tk.Entry(opciones, width=25, textvariable=n_ui)
+n_iter.pack(padx=10, pady=2)
 
 # Boton que realiza el cálculo
 calc = tk.Button(opciones, text="Calcular", width=20,command=lambda:setGraph(a_ui, b_ui, p0_ui, p1_ui, tol_ui, n_ui, funcs, mets) )
