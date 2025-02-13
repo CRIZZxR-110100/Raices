@@ -9,7 +9,19 @@ from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolb
 from matplotlib.figure import Figure
 
 def calcRaiz(a, b, p0, p1, tol, n, opc, met):
+  global current_table
+
+  if current_table is not None:
+    current_table.destroy()
+  
   if met == 0:
+    headers = ("a", "b", "p", "f(a)", "f(b)", "f(p)", "Error")
+    current_table = ttk.Treeview(tableFrame, columns=headers, show='headings')
+
+    for item in headers:
+      current_table.heading(item, text=item)
+    current_table.pack(side=tk.BOTTOM, fill=tk.BOTH, expand=True)
+
     i = int(1)
     for j in range(i, (n+1)):
       p = (b + a)/2
@@ -18,9 +30,9 @@ def calcRaiz(a, b, p0, p1, tol, n, opc, met):
       fb = calcFunc(b, opc)
 
       err = (b-a)/2
+      current_table.insert(parent='', index=tk.END, values=(a, b, p, fa, fb, fp, err))
       
       if ( fp == 0 ) or ( err < tol ):
-        print(p, fp)
         return p
       
       if ( calcFunc(a, opc) * fp) > 0:
@@ -29,28 +41,79 @@ def calcRaiz(a, b, p0, p1, tol, n, opc, met):
         b = p
   
   if met == 1:
-    i = int (1)
+    headers = ("Iteración", "p_i", "p_i+1", "f(p_i)", "f(p_i+1)", "Error")
+    current_table = ttk.Treeview(tableFrame, columns=headers, show='headings')
+
+    for item in headers:
+      current_table.heading(item, text=item)
+    current_table.pack(side=tk.BOTTOM, fill=tk.BOTH, expand=True)
+
+    i = int(1)
     for j in range(1, (n+1)):
       p = p0 - (calcFunc(p0, opc) / derivada(p0, opc))
-      print(p, )
       fp = calcFunc(p, opc)
       fp0 = calcFunc(p0, opc)
 
       err = abs( (p - p0) )
+      current_table.insert(parent='', index=tk.END, values=(j, p0, p, fp0, fp, err))
 
-      if err < tol:
-        print(p, fp)
+      if ( fp == 0 ) or ( err < tol ):
         return p
       
       p0 = p
   
   if met == 2:
-    print("Falta la función del Metodo de secante")
+    headers = ("Iteración", "p_i", "p_i+1", "f(p_i)", "f(p_i+1)", "Error")
+    current_table = ttk.Treeview(tableFrame, columns=headers, show='headings')
+
+    for item in headers:
+      current_table.heading(item, text=item)
+    current_table.pack(side=tk.BOTTOM, fill=tk.BOTH, expand=True)
+
+    i = int(1)
+    for j in range(1, (n+1)):
+      p = p1 - ( (calcFunc(p1, opc)*(p1 - p0))/(calcFunc(p1, opc) - calcFunc(p0, opc)) )
+      fp = calcFunc(p, opc)
+      fp0 = calcFunc(p0, opc)
+      fp1 = calcFunc(p1, opc)
+
+      err = abs( (p - p1) )
+      current_table.insert(parent='', index=tk.END, values=(j, p, p1, fp, fp1, err))
+
+      if ( fp == 0 ) or ( err < tol ):
+        return p
+      
+      p0 = p1
+      p1 = p
 
   if met == 3:
-    print("Falta la función del Metodo de regla falsa")
+    headers = ("Iteración", "p_i", "p_i+1", "f(p_i)", "f(p_i+1)", "Error")
+    current_table = ttk.Treeview(tableFrame, columns=headers, show='headings')
+
+    for item in headers:
+      current_table.heading(item, text=item)
+    current_table.pack(side=tk.BOTTOM, fill=tk.BOTH, expand=True)
+
+    i = int(1)
+    for j in range(1, (n+1)):
+      p = p1 - ( (calcFunc(p1, opc)*(p1 - p0))/(calcFunc(p1, opc) - calcFunc(p0, opc)) )
+      fp = calcFunc(p, opc)
+      fp0 = calcFunc(p0, opc)
+      fp1 = calcFunc(p1, opc)
+
+      err = abs( (p - p1) )
+      current_table.insert(parent='', index=tk.END, values=(j, p, p1, fp, fp1, err))
+
+      if ( fp == 0 ) or ( err < tol ):
+        return p
+      
+      if ( (fp * fp1) < 0 ):
+        p0 = p
+      else:
+        p1 = p
   
   tk.messagebox.showerror("Error", f"El proceso fallo despues de {n} iteraciones")
+  return None
 
 def derivada(x, opc):
   if opc == 0:
@@ -66,7 +129,7 @@ def derivada(x, opc):
     return ( 1 + sin(x) )
 
   if opc == 4:
-    return ( (exp(x)) + (-2**(-x) * (log(2))) + (2*-sen(x)) )
+    return ( (exp(x)) + (-2**(-x) * (log(2))) + (2*-sin(x)) )
 
 def calcFunc(x, opc):
   if opc == 0:
@@ -151,7 +214,7 @@ def setGraph(a_ui, b_ui, p0_ui, p1_ui, tol_ui, n_ui, funcs_ui, mets_ui):
   ax.grid(which="major", linestyle="dashed")
 
   # Dibujo del canva nuevo
-  current_canvas = FigureCanvasTkAgg(fig, master=root)
+  current_canvas = FigureCanvasTkAgg(fig, master=frameSup)
   current_canvas.draw()
   current_canvas.get_tk_widget().pack(side=tk.TOP, fill=tk.BOTH, expand=1)
   ### Fin de la función ###
@@ -159,12 +222,20 @@ def setGraph(a_ui, b_ui, p0_ui, p1_ui, tol_ui, n_ui, funcs_ui, mets_ui):
 
 # Variable global, se usa para determinar si existe un grafico en la aplicación
 current_canvas = None
+current_table = None
 
 ## Ventana principal ##
 root = tk.Tk()
 root.wm_title("Cálculo de Raíces")
 
-titulo = tk.Label(root, text="Cálculo de Raíces", font=("Arial", 20))
+frameSup = tk.Frame(root)
+frameSup.pack(padx=20, pady=5, side=tk.TOP, fill=tk.BOTH, expand=True)
+
+# Panel de los elementos de la app
+tableFrame = tk.Frame(root)
+tableFrame.pack(padx=20, pady=5, side=tk.BOTTOM, fill=tk.BOTH, expand=True)
+
+titulo = tk.Label(frameSup, text="Cálculo de Raíces", font=("Arial", 20))
 titulo.pack(pady=10, side=tk.TOP)
 
 ## Definición de variables de Tkinter ##
@@ -176,7 +247,7 @@ p0_ui = tk.StringVar(value="")
 p1_ui = tk.StringVar(value="")
 
 # Panel con las opciones
-opciones = tk.Frame(root, width=300, height=450, borderwidth=2, relief="sunken")
+opciones = tk.Frame(frameSup, borderwidth=2, relief="sunken")
 opciones.pack(padx=20, pady=10, side=tk.RIGHT)
 
 # Lista de las funciones disponibles
