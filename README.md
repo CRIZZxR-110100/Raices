@@ -2,7 +2,7 @@
 
 ### Faltante:
 - ~~Función para el metodo de secante y regla falsa~~
-- Mejorar el mensaje de fallo del sistema
+- ~~Mejorar el mensaje de fallo del sistema~~
 - ~~Graficación de la raíz obtenida~~
 - ~~Mostrar la tabla con los datos solicitados en el documento~~
 

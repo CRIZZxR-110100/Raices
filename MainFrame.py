@@ -9,8 +9,6 @@ from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolb
 
 from matplotlib.figure import Figure
 
-#def graphPoint(x)
-
 def funcCallback(a, b, p0, p1, tol, func):
   if func.current() == 0:
     a.delete(0, tk.END)
@@ -252,7 +250,7 @@ def setGraph(a_ui, b_ui, p0_ui, p1_ui, tol_ui, n_ui, funcs_ui, mets_ui):
       opc = funcs_ui.current()
       met = mets_ui.current()
     else:
-      tk.messagebox.showerror("Error", "Seleccione una función y un método válido de sus respectivas listas")
+      tk.messagebox.showerror("Error", "Seleccione una función y/o un método válido de sus respectivas listas")
       err += 1
 
     a = float(a_ui.get())
@@ -264,7 +262,7 @@ def setGraph(a_ui, b_ui, p0_ui, p1_ui, tol_ui, n_ui, funcs_ui, mets_ui):
     n = int(n_ui.get())
 
   except ValueError:
-    tk.messagebox.showerror("Error", "Ingrese un número válido en los campos:\n• Los puntos a evualar pueden ser números reales\n• No pueden haber campos vacios")
+    tk.messagebox.showerror("Error", "Ingrese un número válido en los campos:\n• Los puntos a evualar pueden ser números reales\n• La cantidad máxima de iteraciones debe ser entera\n• No pueden haber campos vacios")
     err += 1
 
   if err != 0:
@@ -292,6 +290,9 @@ def setGraph(a_ui, b_ui, p0_ui, p1_ui, tol_ui, n_ui, funcs_ui, mets_ui):
 
   if raiz != None:
     ax.plot(raiz, calcFunc(raiz, opc), color="black", marker='o')
+
+    ax.set_xlabel(f"x = {raiz:.16f}")
+    ax.set_ylabel(f"y = {calcFunc(raiz, opc):.16f}")
 
   ax.set_ylim(limY[0], limY[1])
   ax.set_xlim(min(x), max(x))
