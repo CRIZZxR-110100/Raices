@@ -6,8 +6,52 @@ import tkinter as tk
 from tkinter import ttk
 from tkinter import messagebox as msg
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2Tk
-
 from matplotlib.figure import Figure
+from matplotlib.animation import FuncAnimation
+
+def animacion(frame=0):
+  global x, org, ax, raices, met, n
+
+  if frame >= len(raices):
+    return
+  
+  ax.clear()
+
+  limY = [min(org) - (max(org) * 0.25), max(org) * 1.25]
+
+  ax.axhline(0, color="black", linewidth=1)
+  ax.axvline(0, color="black", linewidth=1)
+  ax.plot(x, org, color="red")
+
+  if met == 0:
+    ax.plot([raices[frame][1], raices[frame][1]], [0, raices[frame][2]], color="black")
+    ax.plot([raices[frame][3], raices[frame][3]], [0, raices[frame][4]], color="black")
+
+    ax.plot(raices[frame][0], 0, color="black", marker='o', label=f"x = {raices[frame][0]}")
+  elif met == 1:
+    ax.plot([raices[frame][1], raices[frame][1]], [0, raices[frame][2]], linestyle="dashed")
+    ax.plot([raices[frame][0], raices[frame][1]], [0, raices[frame][2]], color="black")
+    ax.plot(raices[frame][1], raices[frame][2], color="blue", marker='o', label=f"x0 = {raices[frame][1]}")
+
+    ax.plot(raices[frame][0], 0, color="black", marker='o', label=f"x = {raices[frame][0]}")
+  else:
+    ax.plot([raices[frame][1], raices[frame][1]], [0, raices[frame][2]], linestyle="dashed")
+    ax.plot([raices[frame][3], raices[frame][3]], [0, raices[frame][4]], linestyle="dashed")
+    ax.plot([raices[frame][1], raices[frame][3]], [raices[frame][2], raices[frame][4]], color="black")
+
+    ax.plot(raices[frame][0], 0, color="black", marker='o', label=f"x = {raices[frame][0]}")
+
+  ax.set_xlim(min(x), max(x))
+  ax.set_ylim(limY[0], limY[1])
+  ax.legend(loc="upper right", fontsize="small")
+  ax.grid(which="major", linestyle="dashed")
+
+  current_canvas.draw()
+
+  if len(raices) >= n:
+    frameSup.after(50, animacion, frame + 1)
+  else:
+    frameSup.after(1000, animacion, frame + 1)
 
 def funcCallback(a, b, p0, p1, tol, func):
   if func.current() == 0:
@@ -88,14 +132,14 @@ def funcCallback(a, b, p0, p1, tol, func):
 
 def calcRaiz(a, b, p0, p1, tol, n, opc, met):
   global current_table
+  raices = []
 
   if current_table is not None:
     current_table.destroy()
-  
+
   if met == 0:
     headers = ("a", "b", "p", "f(a)", "f(b)", "f(p)", "Error")
     current_table = ttk.Treeview(tableFrame, columns=headers, show='headings')
-
     for item in headers:
       current_table.heading(item, text=item)
     current_table.pack(side=tk.BOTTOM, fill=tk.BOTH, expand=True)
@@ -106,68 +150,63 @@ def calcRaiz(a, b, p0, p1, tol, n, opc, met):
       fp = calcFunc(p, opc)
       fa = calcFunc(a, opc)
       fb = calcFunc(b, opc)
-
       err = (b-a)/2
       current_table.insert(parent='', index=tk.END, values=(a, b, p, fa, fb, fp, err))
-      
+      raices.append( (p, a, fa, b, fb) )
+
       if ( fp == 0 ) or ( err < tol ):
-        return p
-      
+        return raices
       if ( calcFunc(a, opc) * fp) > 0:
         a = p
       else:
         b = p
-  
+
   if met == 1:
     headers = ("Iteración", "p_i", "p_i+1", "f(p_i)", "f(p_i+1)", "Error")
     current_table = ttk.Treeview(tableFrame, columns=headers, show='headings')
-
     for item in headers:
       current_table.heading(item, text=item)
     current_table.pack(side=tk.BOTTOM, fill=tk.BOTH, expand=True)
 
     i = int(1)
     for j in range(1, (n+1)):
-      p = p0 - (calcFunc(p0, opc) / derivada(p0, opc))
-      fp = calcFunc(p, opc)
       fp0 = calcFunc(p0, opc)
-
+      p = p0 - (fp0 / derivada(p0, opc))
+      fp = calcFunc(p, opc)
       err = abs( (p - p0) )
       current_table.insert(parent='', index=tk.END, values=(j, p0, p, fp0, fp, err))
+      raices.append( (p, p0, fp0) )
 
       if ( fp == 0 ) or ( err < tol ):
-        return p
-      
+        return raices
       p0 = p
-  
-  if met == 2:
-    headers = ("Iteración", "p_i", "p_i+1", "f(p_i)", "f(p_i+1)", "Error")
-    current_table = ttk.Treeview(tableFrame, columns=headers, show='headings')
 
+  if met == 2:
+    headers = ("Iteración", "p_i-1", "p_i", "p_i+1", "f(p_i)", "f(p_i+1)", "Error")
+    current_table = ttk.Treeview(tableFrame, columns=headers, show='headings')
     for item in headers:
       current_table.heading(item, text=item)
     current_table.pack(side=tk.BOTTOM, fill=tk.BOTH, expand=True)
 
     i = int(1)
     for j in range(1, (n+1)):
-      p = p1 - ( (calcFunc(p1, opc)*(p1 - p0))/(calcFunc(p1, opc) - calcFunc(p0, opc)) )
-      fp = calcFunc(p, opc)
       fp0 = calcFunc(p0, opc)
       fp1 = calcFunc(p1, opc)
-
+      p = p1 - ( (fp1*(p1 - p0))/(fp1 - fp0) )
+      fp = calcFunc(p, opc)
       err = abs( (p - p1) )
-      current_table.insert(parent='', index=tk.END, values=(j, p, p1, fp, fp1, err))
+      current_table.insert(parent='', index=tk.END, values=(j, p0, p, p1, fp, fp1, err))
+      raices.append( (p, p0, fp0, p1, fp1) )
 
       if ( fp == 0 ) or ( err < tol ):
-        return p
+        return raices
       
       p0 = p1
       p1 = p
 
   if met == 3:
-    headers = ("Iteración", "p_i", "p_i+1", "f(p_i)", "f(p_i+1)", "Error")
+    headers = ("Iteración", "p_i-1", "p_i", "p_i+1", "f(p_i)", "f(p_i+1)", "Error")
     current_table = ttk.Treeview(tableFrame, columns=headers, show='headings')
-
     for item in headers:
       current_table.heading(item, text=item)
     current_table.pack(side=tk.BOTTOM, fill=tk.BOTH, expand=True)
@@ -176,27 +215,26 @@ def calcRaiz(a, b, p0, p1, tol, n, opc, met):
     for j in range(1, (n+1)):
       fp0 = calcFunc(p0, opc)
       fp1 = calcFunc(p1, opc)
-
       p = p1 - ( (fp1*(p1 - p0))/(fp1 - fp0) )
       fp = calcFunc(p, opc)
-
       err = abs( (p - p1) )
-      current_table.insert(parent='', index=tk.END, values=(j, p, p1, fp, fp1, err))
-      
-      if ( fp == 0) or ( err < 0 ):
-        return p
-      
-      if ( (fp * fp0) < 0 ):
-        p1 = p
-      else:
+      current_table.insert(parent='', index=tk.END, values=(j, p0, p, p1, fp, fp1, err))
+      raices.append( (p, p0, fp0, p1, fp1) )
+
+      if ( fp == 0) or ( err < tol ):
+        return raices
+
+      if ( (fp * fp1) < 0 ):
         p0 = p
-  
+      else:
+        p1 = p
+
   tk.messagebox.showerror("Error", f"El proceso fallo despues de {n} iteraciones")
-  return None
+  return raices
 
 def derivada(x, opc):
   if opc == 0:
-    return ( 3*(x**2) + 2*(x) )
+    return ( 3*(x**2) + 8*(x) )
   
   if opc == 1:
     return ( 3*(x**2) - 4*(x) )
@@ -242,6 +280,8 @@ def calcFunc(x, opc):
 
 def setGraph(a_ui, b_ui, p0_ui, p1_ui, tol_ui, n_ui, funcs_ui, mets_ui):
   global current_canvas
+  global x, org, ax, raices, met, n
+  
   err = int(0)
   opc, met = int(0), int(0)
 
@@ -269,45 +309,28 @@ def setGraph(a_ui, b_ui, p0_ui, p1_ui, tol_ui, n_ui, funcs_ui, mets_ui):
     return
   
   x = arr(a, b, 250)
-  org = calcFunc(x, opc)
-
-  raiz = calcRaiz(a, b, p0, p1, tol, n, opc, met)
+  org = calcFunc(x, opc)  # Calculate the original function values
+  raices = calcRaiz(a, b, p0, p1, tol, n, opc, met)
 
   # Destruir el canvas anterior si existe
   if current_canvas is not None:
     current_canvas.get_tk_widget().destroy()
-  
-  limY = [min(org)-(max(org)*0.25), max(org)*1.25]
 
   # Creación de la gráfica
   fig = Figure(figsize=(5, 4), dpi=100)
   ax = fig.add_subplot(111)
 
-  ax.plot([min(x), max(x)], [0, 0], color="black", linewidth=1)
-  ax.plot([0, 0], limY, color="black", linewidth=1)
-
-  ax.plot(x, org, color="red")
-
-  if raiz != None:
-    ax.plot(raiz, calcFunc(raiz, opc), color="black", marker='o')
-
-    ax.set_xlabel(f"x = {raiz:.16f}")
-    ax.set_ylabel(f"y = {calcFunc(raiz, opc):.16f}")
-
-  ax.set_ylim(limY[0], limY[1])
-  ax.set_xlim(min(x), max(x))
-  ax.grid(which="major", linestyle="dashed")
-
   # Dibujo del canva nuevo
   current_canvas = FigureCanvasTkAgg(fig, master=frameSup)
   current_canvas.draw()
   current_canvas.get_tk_widget().pack(side=tk.TOP, fill=tk.BOTH, expand=1)
+
+  frameSup.after(0, animacion, 0)
   ### Fin de la función ###
 
 
 # Variable global, se usa para determinar si existe un grafico en la aplicación
 current_canvas = None
-current_axis = None
 current_table = None
 
 ## Ventana principal ##
