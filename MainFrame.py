@@ -13,36 +13,39 @@ def animacion(frame=0):
   global x, org, ax, raices, met, n
 
   if frame >= len(raices):
+    calc.config(state=tk.NORMAL)
     return
   
-  ax.clear()
+  ## ax.clear()
 
   limY = [min(org) - (max(org) * 0.25), max(org) * 1.25]
 
-  ax.axhline(0, color="black", linewidth=1)
-  ax.axvline(0, color="black", linewidth=1)
-  ax.plot(x, org, color="red")
+  if frame == 0:
+    ax.axhline(0, color="black", linewidth=1)
+    ax.axvline(0, color="black", linewidth=1)
+    ax.plot(x, org, color="red")
 
   if met == 0:
     ax.plot([raices[frame][1], raices[frame][1]], [0, raices[frame][2]], color="black")
     ax.plot([raices[frame][3], raices[frame][3]], [0, raices[frame][4]], color="black")
 
-    ax.plot(raices[frame][0], 0, color="black", marker='o', label=f"x = {raices[frame][0]}")
+    ax.plot(raices[frame][0], 0, color="black", marker='o')
   elif met == 1:
-    ax.plot([raices[frame][1], raices[frame][1]], [0, raices[frame][2]], linestyle="dashed")
+    ax.plot([raices[frame][1], raices[frame][1]], [0, raices[frame][2]], color="black", linestyle="dashed")
     ax.plot([raices[frame][0], raices[frame][1]], [0, raices[frame][2]], color="black")
 
-    ax.plot(raices[frame][0], 0, color="black", marker='o', label=f"x = {raices[frame][0]}")
+    ax.plot(raices[frame][0], 0, color="black", marker='o')
   else:
-    ax.plot([raices[frame][1], raices[frame][1]], [0, raices[frame][2]], linestyle="dashed")
-    ax.plot([raices[frame][3], raices[frame][3]], [0, raices[frame][4]], linestyle="dashed")
+    ax.plot([raices[frame][1], raices[frame][1]], [0, raices[frame][2]], linestyle="dashed", color="black")
+    ax.plot([raices[frame][3], raices[frame][3]], [0, raices[frame][4]], linestyle="dashed", color="black")
     ax.plot([raices[frame][1], raices[frame][3]], [raices[frame][2], raices[frame][4]], color="black")
 
-    ax.plot(raices[frame][0], 0, color="black", marker='o', label=f"x = {raices[frame][0]}")
+    ax.plot(raices[frame][0], 0, color="black", marker='o', )
 
   ax.set_xlim(min(x), max(x))
   ax.set_ylim(limY[0], limY[1])
-  ax.legend(loc="upper right", fontsize="small")
+  ##ax.legend(loc="upper right", fontsize="small")
+  ax.set_xlabel(f"x = {raices[frame][0]} (Iteración: {frame+1})")
   ax.grid(which="major", linestyle="dashed")
 
   current_canvas.draw()
@@ -325,6 +328,7 @@ def setGraph(a_ui, b_ui, p0_ui, p1_ui, tol_ui, n_ui, funcs_ui, mets_ui):
   current_canvas.get_tk_widget().pack(side=tk.TOP, fill=tk.BOTH, expand=1)
 
   frameSup.after(0, animacion, 0)
+  calc.config(state=tk.DISABLED)
   ### Fin de la función ###
 
 
