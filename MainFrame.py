@@ -31,7 +31,6 @@ def animacion(frame=0):
   elif met == 1:
     ax.plot([raices[frame][1], raices[frame][1]], [0, raices[frame][2]], linestyle="dashed")
     ax.plot([raices[frame][0], raices[frame][1]], [0, raices[frame][2]], color="black")
-    ax.plot(raices[frame][1], raices[frame][2], color="blue", marker='o', label=f"x0 = {raices[frame][1]}")
 
     ax.plot(raices[frame][0], 0, color="black", marker='o', label=f"x = {raices[frame][0]}")
   else:
@@ -194,7 +193,7 @@ def calcRaiz(a, b, p0, p1, tol, n, opc, met):
       fp1 = calcFunc(p1, opc)
       p = p1 - ( (fp1*(p1 - p0))/(fp1 - fp0) )
       fp = calcFunc(p, opc)
-      err = abs( (p - p1) )
+      err = abs( (p - p0) )
       current_table.insert(parent='', index=tk.END, values=(j, p0, p, p1, fp, fp1, err))
       raices.append( (p, p0, fp0, p1, fp1) )
 
@@ -217,7 +216,7 @@ def calcRaiz(a, b, p0, p1, tol, n, opc, met):
       fp1 = calcFunc(p1, opc)
       p = p1 - ( (fp1*(p1 - p0))/(fp1 - fp0) )
       fp = calcFunc(p, opc)
-      err = abs( (p - p1) )
+      err = abs( (p - p0) )
       current_table.insert(parent='', index=tk.END, values=(j, p0, p, p1, fp, fp1, err))
       raices.append( (p, p0, fp0, p1, fp1) )
 
