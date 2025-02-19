@@ -132,6 +132,24 @@ def funcCallback(a, b, p0, p1, tol, func):
     tol.delete(0, tk.END)
     tol.insert(0, "0.00001")
 
+def metCallback(a, b, p0, p1, tol, func, met):
+  p0.config(state='normal')
+  p1.config(state='normal')
+
+  funcCallback(a, b, p0, p1, tol, func)
+
+  if met.current() == 0:
+    p0.delete(0, tk.END)
+    p1.delete(0, tk.END)
+    
+    p0.config(state='disabled')
+    p1.config(state='disabled')
+  elif met.current() == 1:
+    p1.delete(0, tk.END)
+
+    p0.config(state='normal')
+    p1.config(state='disabled')
+
 def calcRaiz(a, b, p0, p1, tol, n, opc, met):
   global current_table
   raices = []
@@ -286,6 +304,7 @@ def setGraph(a_ui, b_ui, p0_ui, p1_ui, tol_ui, n_ui, funcs_ui, mets_ui):
   
   err = int(0)
   opc, met = int(0), int(0)
+  p0, p1 = float(0), float(0)
 
   try:
     if (funcs_ui.current() > -1) and (mets_ui.current() > -1):
@@ -297,14 +316,22 @@ def setGraph(a_ui, b_ui, p0_ui, p1_ui, tol_ui, n_ui, funcs_ui, mets_ui):
 
     a = float(a_ui.get())
     b = float(b_ui.get())
-    p0 = float(p0_ui.get())
-    p1 = float(p1_ui.get())
     tol = float(tol_ui.get())
-
     n = int(n_ui.get())
 
+    if met != 0 and met != 1:
+      p0 = float(p0_ui.get())
+      p1 = float(p1_ui.get())
+
+    if met == 1:
+      p0 = float(p0_ui.get())
+      p1 = p1
+
+    if met == 0:
+      p0, p1 = p0, p1
+
   except ValueError:
-    tk.messagebox.showerror("Error", "Ingrese un número válido en los campos:\n• Los puntos a evualar pueden ser números reales\n• La cantidad máxima de iteraciones debe ser entera\n• No pueden haber campos vacios")
+    tk.messagebox.showerror("Error", "Ingrese un número válido para la tolerancia y los puntos a evaluar [a, b] y los puntos 'Pn' necesarios para cada uno de los métodos")
     err += 1
 
   if err != 0:
@@ -381,6 +408,7 @@ mets = ttk.Combobox(
   state="readonly",
   values=["Bisección", "Newton Raphson", "Secante", "Regla falsa"]
 )
+mets.bind("<<ComboboxSelected>>", lambda _ :metCallback(punto1, punto2, punto3, punto4, tolerancia, funcs, mets))
 mets.pack(padx=10, pady=2)
 
 # Campos de texto para los puntos [a, b] de la función

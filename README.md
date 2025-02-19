@@ -5,5 +5,7 @@
 - ~~Mejorar el mensaje de fallo del sistema~~
 - ~~Graficación de la raíz obtenida~~
 - ~~Mostrar la tabla con los datos solicitados en el documento~~
+- Documentación
+- Enviar archivos
 
 > Esto es tentativo, puede que se me pasen cosas por alto
